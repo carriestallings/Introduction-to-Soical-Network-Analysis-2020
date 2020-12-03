@@ -1,0 +1,273 @@
+---
+title: "Intro to SNV/A Workshop Answers"
+author: "Carrie Stallings"
+date: "11/29/2020"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+#building the library
+library(igraph)
+library(igraphdata)
+library(Matrix)
+library(DataCombine)
+library(stargazer)
+```
+#VISUALIZATION
+
+##simulating a network (you already have the output file, but I left this here if anyone is curious!)
+```{r simulate}
+#setting working directory
+setwd("~/Google Drive/PhD/RCS Workshops/Social Network Analysis")
+
+#set our seed so we get same results
+set.seed(1234545452)
+
+#making fake edgelist (let's say a group of grad students from a department)
+num_nodes <-40
+num_edges<-40
+
+#make some names
+node_names<-rep("", num_nodes)
+for(i in 1:num_nodes){
+  node_names[i] <-paste("student", i, sep="_")
+}
+print(node_names)
+
+#geenrate blank edgelist
+grade<- matrix("", nrow=num_edges, ncol=2)
+
+#populate rows with edge pairs that have names of sender/receiver
+for(i in 1: num_edges){
+  grade[i,] <-sample(x=node_names, 
+                        size=2, 
+                        replace=FALSE #no self edges
+  )
+}
+
+write.csv(grade, file= "grade.csv")
+```
+
+##Preparing 
+```{r getting ready}
+
+#setting working directory:
+
+
+#reading in all our data; hypothetically, our data is a group of graduate students from one department, and the edges represent who the students go to for advice related to the department:
+
+
+#reading in the edgelist file (the one I simulated), specifying that the row.names come from column 1 (so both end up empty):
+
+#flaw in the edgelist format is there are no isolates, which presents problem when trying to apply /attributes/
+
+#so we have to bring a vertex list into play
+#read in vertex list:
+
+#we also need our attribute file to make meaning out of the network:
+
+#must merge attribute file to vertex list for what I believe to be the easiest way to work with attributes.
+# Note: order of attributes in the data frame MUST match vertex ids
+# otherwise the attribute will get assigned to the wrong vertex(though in this case, attribute file has id's, so moot but here's how):
+
+
+
+```
+
+
+## What Kind of Data Can We Build Graphs From?
+```{r datatype}
+#cue powerpoint
+#graph_from reveals data types-- I love using built in documentation to learn!
+
+```
+
+
+```{r our first plot}
+
+#need a matrix to make network object:
+
+#if false, then make it a matrix:
+
+# should be TRUE now:
+
+
+#to plot our data as a network, we first need to make it into a graph object:
+
+#now that we have a graph object, we can use plot function:
+
+#done, but ugly!
+```
+
+##Adding Attributes
+```{r further visualization}
+
+
+#I think it's best to add attributes before perfecting visualizations 
+#base attributes, name automatically assgined:
+
+#let's add in the other attributes to the network object "gradn":
+
+
+#did it work?:
+
+```
+
+##Using Attributes
+```{r using attributes}
+#ok, let's say we want to color by gender:
+
+#did it work:
+
+#what about year?:
+
+#year by size?:
+
+#did it work:
+
+
+#great! finally, score in class:
+
+#did it work:
+
+```
+
+##Adding Shapes
+```{r playingwshapes}
+#you can also add your own shapes for more distinction
+mytriangle <- function(coords, v=NULL, params) {
+  vertex.color <- params("vertex", "color")
+  if (length(vertex.color) != 1 && !is.null(v)) {
+    vertex.color <- vertex.color[v]
+  }
+  vertex.size <- 1/200 * params("vertex", "size")
+  if (length(vertex.size) != 1 && !is.null(v)) {
+    vertex.size <- vertex.size[v]
+  }
+
+  symbols(x=coords[,1], y=coords[,2], bg=vertex.color,
+          stars=cbind(vertex.size, vertex.size, vertex.size),
+          add=TRUE, inches=FALSE)
+}
+# clips as a circle
+add_shape("triangle", clip=shapes("circle")$clip,
+                 plot=mytriangle)
+
+
+#new shape specifications using triangle:
+
+#check:
+
+#student 16 should be a triangle
+
+```
+
+##Making Her Beautiful
+```{r beautifying}
+#looking at the graph, the arrows need to be smaller:
+
+#the labels are kind of annoying, so drop them:
+
+
+#or, just make them numbers:
+
+#check:
+
+#the sizes of the nodes need to be changed:
+
+#check:
+
+
+```
+
+##Finally, Layouts
+```{r layout}
+#the circle layout:
+
+#the random layout:
+
+#the fruchterman.reingold layout:
+
+#and there are others!
+```
+
+
+#ANALYSIS
+
+##Network Leveal Measures
+```{r network measures}
+#Ask yourself-- what do you want to know about this network? Motivated by your research questions and curiosities
+
+#remember, this is a network of graduate students,who we asked "who do you go to when needing advice/help on dealing with a department related issue"?
+
+
+#How big is this department?:
+
+
+#how many edges/connections are there between these 40 individuals?:
+
+
+#What is the greatest distance between nodes? (How many nodes do you have to go through?):
+
+#because directed, can't just jump from node to node, have to follow arrows #unconnected pieces, isolates
+
+
+#What is the average distance between nodes?:
+
+# How many components are there? (How  many "cliques" of graduate students?):
+
+#How many students in largest component?:
+
+#How dense is this network of graduate students? (Is it well connected, or less so?):
+
+ #this graph doesn't have loops, but importance option note) 
+
+
+
+
+```
+
+##Node/Ego Level Measures
+```{r node/ego measures}
+#Ego measures let you pick one particular node to measure from
+
+
+#What is the degree of the nodes? (Basically, let's find out how many sending/receiving connections the nodes have on average)
+#Let's store it to make a table
+
+#degree in:
+
+
+#by subbing the lot of the vertexes from "gradn" with a single vertex, you can find the degree for a single node, say 18
+
+#degree out:
+
+
+
+#What is the average Burt's Constraint (Burt 2004)?
+#Cue Powerpoint
+#(Measures structural holes, measures how much an ego's friends are connected amongst themselves-- the lower the constraint, the less redundant ties):
+
+
+#you can use this function to compare constraint between nodes as well
+#let us look at plot with number labels:
+
+#hmm, 22 looks in the thick of it:
+
+#18?:
+```
+
+##Node/Ego Measures, Continued
+```{r node/ego measures2}
+
+
+#What is the average betweeness? (How much a given student is in between, or on the path, of other students):
+
+#let us get sumary statistics for these:
+```
+
+
+
+
